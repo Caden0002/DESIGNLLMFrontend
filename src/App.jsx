@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+//App.jsx
+
+import { Auth0Provider } from "@auth0/auth0-react";
+import { auth0Config } from "./config/auth0-config";
+import ChatUI from "./components/ChatUI";
+import Login from "./components/Login";
+import { useAuth0 } from "@auth0/auth0-react";
+import { ChatProvider } from "./context/ChatContext";
+import PropTypes from "prop-types";
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth0();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="text-gray-100">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
+  return children;
+};
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Auth0Provider {...auth0Config}>
+      <ChatProvider>
+        <div className="min-h-screen bg-gray-900">
+          <ProtectedRoute>
+            <ChatUI />
+          </ProtectedRoute>
+        </div>
+      </ChatProvider>
+    </Auth0Provider>
+  );
 }
 
-export default App
+export default App;
